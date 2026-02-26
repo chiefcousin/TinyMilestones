@@ -2,8 +2,7 @@
 -- TinyMilestones - Initial Database Schema
 -- ============================================
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- gen_random_uuid() is built into PostgreSQL 13+ (used by Supabase)
 
 -- ============================================
 -- 1. PROFILES (extends auth.users)
@@ -65,7 +64,7 @@ CREATE POLICY "Users can insert own profile"
 -- 2. CHILDREN
 -- ============================================
 CREATE TABLE public.children (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   birthdate DATE NOT NULL,
@@ -92,7 +91,7 @@ CREATE POLICY "Users can manage own children"
 -- 3. ACTIVITIES
 -- ============================================
 CREATE TABLE public.activities (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   child_id UUID NOT NULL REFERENCES public.children(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
@@ -126,7 +125,7 @@ CREATE POLICY "Users can manage own activities"
 -- 4. ACTIVITY LOGS (rate limiting & analytics)
 -- ============================================
 CREATE TABLE public.activity_logs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   child_id UUID REFERENCES public.children(id) ON DELETE SET NULL,
   domain_filter TEXT,
@@ -146,7 +145,7 @@ CREATE POLICY "Users can manage own activity logs"
 -- 5. MILESTONES (Phase 2 - CDC/AAP guidelines)
 -- ============================================
 CREATE TABLE public.milestones (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   age_months INTEGER NOT NULL,
   domain TEXT NOT NULL CHECK (domain IN ('Cognitive', 'Fine Motor', 'Gross Motor', 'Language', 'Social-Emotional')),
   title TEXT NOT NULL,
@@ -168,7 +167,7 @@ CREATE POLICY "Authenticated users can view milestones"
 -- 6. CHILD MILESTONES (Phase 2 - tracking)
 -- ============================================
 CREATE TABLE public.child_milestones (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   child_id UUID NOT NULL REFERENCES public.children(id) ON DELETE CASCADE,
   milestone_id UUID NOT NULL REFERENCES public.milestones(id) ON DELETE CASCADE,
   achieved BOOLEAN NOT NULL DEFAULT FALSE,
@@ -196,7 +195,7 @@ CREATE POLICY "Users can manage milestones for own children"
 -- 7. PAYMENT EVENTS (audit log)
 -- ============================================
 CREATE TABLE public.payment_events (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   gateway TEXT NOT NULL CHECK (gateway IN ('stripe', 'razorpay')),
   event_type TEXT NOT NULL,

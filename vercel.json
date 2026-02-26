@@ -1,4 +1,6 @@
 {
+  "framework": "nextjs",
+  "regions": ["iad1"],
   "functions": {
     "src/app/api/activities/generate/route.ts": {
       "maxDuration": 30
